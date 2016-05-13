@@ -1,0 +1,23 @@
+{
+  "name": "hillbrookcalendar",
+  "version": "1.0.0",
+  "description": "A skill for Alexa",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "alexa",
+    "aws",
+    "aws-lambda"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "alexa-app": "^2.3.3",
+    "ical": "^0.5.0",
+    "moment": "^2.13.0",
+    "moment-timezone": "^0.5.4",
+    "request-promise": "^3.0.0"
+  }
+}
