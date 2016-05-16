@@ -4,7 +4,7 @@
   "description": "A skill for Alexa",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test"
   },
   "keywords": [
     "alexa",
@@ -15,6 +15,8 @@
   "license": "MIT",
   "dependencies": {
     "alexa-app": "^2.3.3",
+    "bluebird": "^3.3.5",
+    "dynasty": "^0.2.4",
     "ical": "^0.5.0",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
