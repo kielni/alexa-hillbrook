@@ -1,0 +1,18 @@
+GRADES
+pre k
+pre kindergarten
+k
+kinder
+kindergarten
+first
+second
+third
+fourth
+fifth
+sixth
+seventh
+eighth
+
+ON_OFF
+on
+off

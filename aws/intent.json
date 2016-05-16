@@ -1,0 +1,31 @@
+{
+   "intents": [
+      {
+         "intent": "add",
+         "slots": [
+            {
+               "name": "GRADE",
+               "type": "GRADES"
+            }
+         ]
+      },
+      {
+         "intent": "remove",
+         "slots": [
+            {
+               "name": "GRADE",
+               "type": "GRADES"
+            }
+         ]
+      },
+      {
+         "intent": "jokes",
+         "slots": [
+            {
+               "name": "TELL",
+               "type": "ON_OFF"
+            }
+         ]
+      }
+   ]
+}
