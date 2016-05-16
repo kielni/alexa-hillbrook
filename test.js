@@ -9,4 +9,6 @@ if (now.hour() >= 12) {
 }
 var toDt = moment(fromDt).add(1, 'days');
 
-cal.loadEvents(fromDt.toDate(), toDt.toDate(), function(){});
+cal.loadEvents(fromDt.toDate(), toDt.toDate()).then(function(resp) {
+    console.log('then resp=', resp);
+});
