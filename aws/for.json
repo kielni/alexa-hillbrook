@@ -1,0 +1,28 @@
+{
+  "session": {
+    "sessionId": "SessionId.12345678-aaaa-bbbb-cccc-123412341234",
+    "application": {
+      "applicationId": "amzn1.echo-sdk-ams.app.123"
+    },
+    "user": {
+      "userId": "amzn1.ask.account.ABCDEF"
+    },
+    "new": true
+  },
+  "request": {
+    "type": "IntentRequest",
+    "requestId": "EdwRequestId.12345678-aaaa-bbbb-cccc-123456789012",
+    "timestamp": "2016-05-15T03:59:52Z",
+    "intent": {
+      "name": "forDay",
+      "slots": {
+        "WHEN": {
+          "name": "WHEN",
+          "value": "2016-05-16"
+        }
+      }
+    },
+    "locale": "en-US"
+  },
+  "version": "1.0"
+}
