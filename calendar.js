@@ -30,7 +30,7 @@ loadEvents returns a promise that resolves with list of events between fromDt an
 */
 module.exports = {
     loadEvents: function(fromDt, toDt) {
-        console.log('start load events for '+fromDt+' to '+toDt);
+        console.log('start load events for '+fromDt.toISOString()+' to '+toDt.toISOString());
         return rp(url).then(function(response) {
             if (!response) {
                 return([]);
@@ -53,7 +53,7 @@ module.exports = {
                 } else if (!ev.start || (ev.start < fromDt || ev.start > toDt)) {
                     return;
                 }
-                console.log('\t'+ev.start+'\t'+ev.summary);
+                console.log('\t'+ev.start.toISOString()+'\t'+ev.summary);
                 events.push({
                     start: ev.start,
                     end: ev.end,
