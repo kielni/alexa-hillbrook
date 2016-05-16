@@ -1,5 +1,4 @@
 var moment = require('moment-timezone'),
-//    dynasty = require('dynasty')({}),
     Promise = require('bluebird'),
     cal = require('./calendar'),
     dayMessages = require('./day-messages'),
@@ -14,12 +13,11 @@ function toSpeech(dayName, events, grades) {
       end: { Fri, 13 May 2016 21:30:00 GMT tz: 'America/Los_Angeles' },
       summary: 'All School Walkathon' }
     */
-    //console.log('toSpeech: grades=', grades);
+    console.log('toSpeech: loaded '+events.length+' events grades=', grades);
     if (!events || !events.length) {
         return(['Nothing going on today.']);
     }
-    console.log('loaded '+events.length+' events');
-    var now = moment();
+    var now = moment().tz('America/Los_Angeles');
     var dayExp = new RegExp(/([A-F]) Day/);
     var noSchool = new RegExp(/no school/i);
     var hbDay = null;
@@ -38,7 +36,8 @@ function toSpeech(dayName, events, grades) {
             hbDay = dayMatch[1];
             // Today/Tomorrow is X day.
             say.push(dayName.charAt(0).toUpperCase()+dayName.slice(1)+' is '+
-                ev.summary.replace('Day', 'day.'));
+                '<say-as interpret-as="characters">'+hbDay+'</say-as>'+
+                ' day.');
         } else {
             // 2pm or 2:30pm
             var format = start.minute() === 0 ? 'hA' : 'h:mmA';
@@ -56,7 +55,7 @@ function toSpeech(dayName, events, grades) {
             !dayMessages[grade] || !dayMessages[grade][hbDay]) {
             return;
         }
-        if (i === 0) {
+        if (i === 0 && grades.length > 1) {
             say.push(speech.ers[grade]+', '+dayMessages[grade][hbDay][0]);
             if (dayMessages[grade][hbDay].length > 1) {
                 say = say.concat(dayMessages[grade][hbDay].slice(1));
@@ -74,9 +73,9 @@ function toSpeech(dayName, events, grades) {
 }
 
 module.exports = {
-    forDay: function(dt, userId, response) {
-        console.log('forDay dt='+dt.Date()+' userId='+userId);
-        var now = moment();
+    forDay: function(dt, db, userId, response) {
+        console.log('forDay dt='+dt.toISOString()+' userId='+userId);
+        var now = moment().tz('America/Los_Angeles');
         var day = dt.day();
         var hour = dt.hour();
         // weekend
@@ -101,14 +100,12 @@ module.exports = {
             dayName = dt.format('dddd');
         }
 
-        console.log('forDay '+fromDt.format('dddd mmm d')+' to '+toDt.format('dddd mmm d')+' dayName='+dayName);
         var promises = [
             cal.loadEvents(fromDt, toDt),
-            //dynasty.table('user_grade').find(userId)
+            db.get(userId)
         ];
         var self = this;
         Promise.all(promises).then(function(results) {
-            console.log('resolved, results=', results);
             response.say(toSpeech(dayName, results[0], results[1]));
             response.send();
         });
