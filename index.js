@@ -5,6 +5,7 @@ var moment = require('moment-timezone'),
 var app = new alexa.app('hillbrook-calendar');
 
 app.launch(function(request, response) {
+    // TODO: wait for a response
     return events.forDay(moment().tz('America/Los_Angeles'), request.userId, response);
 });
 
@@ -30,10 +31,13 @@ app.intent('add',
             '{add|GRADE} {|grade|grader}'
         ]
     },
-
     function(request, response) {
         var grade = request.slot('GRADE');
-        // save and repeat back
+        // TODO:
+        // slots -> key ([JK,K,1-8])
+        // save
+        // [1st,2nd..]+(' added')
+        // say get x grade events
         console.log('userID=', request.userId);
         response.say('add grade '+grade);
     }
@@ -50,22 +54,11 @@ app.intent('remove',
     function(request, response) {
         var grade = request.slot('GRADE');
         // save and repeat back
+        // slots -> key ([JK,K,1-8])
+        // save
+        // [1st,2nd..]+(' removed')
         console.log('userID=', request.userId);
         response.say('remove grade '+grade);
-    }
-);
-
-app.intent('jokes',
-    {
-        'slots': {'TELL': 'ON_OFF'}, 
-        'utterances': [
-            '{turn on|TELL}'
-        ]
-    },
-
-    function(request,response) {
-        // save and repeat back
-        var jokes = req.slot('JOKES');
     }
 );
 

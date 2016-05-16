@@ -4,5 +4,3 @@ add add {GRADE} grader
 remove  remove {GRADE}
 remove  remove {GRADE} grade
 remove remove {GRADE} grader
-jokes   jokes on
-jokes   jokes off

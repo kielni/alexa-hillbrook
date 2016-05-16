@@ -17,15 +17,6 @@
                "type": "GRADES"
             }
          ]
-      },
-      {
-         "intent": "jokes",
-         "slots": [
-            {
-               "name": "TELL",
-               "type": "ON_OFF"
-            }
-         ]
       }
    ]
 }

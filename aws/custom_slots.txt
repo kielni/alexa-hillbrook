@@ -12,7 +12,3 @@ fifth
 sixth
 seventh
 eighth
-
-ON_OFF
-on
-off
