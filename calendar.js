@@ -43,22 +43,21 @@ module.exports = {
                     end: data[key].end ? moment(data[key].end) : null,
                     summary: data[key].summary
                 };
-                var isDayEvent = false;
-                // A-F days are 07:00:00 GMT tz: undefined
-                if (ev.summary && ev.start && ev.end && ev.summary.match(/[A-F] Day/)) {
-                    //console.log(ev.summary+' fromDt='+fromDt.format('MM-DD')+' start='+ev.start.format('MM-DD')+' end='+ev.end.format('MM-DD'));
-                    if (fromDt.format('MM-DD') !== ev.start.format('MM-DD')) {
-                        return;
-                    }
-                } else if (!ev.start || (ev.start < fromDt || ev.start > toDt)) {
+                if (!ev.start || !ev.summary) {
                     return;
                 }
-                console.log('\t'+ev.start.toISOString()+'\t'+ev.summary);
-                events.push({
-                    start: ev.start,
-                    end: ev.end,
-                    summary: ev.summary
-                });
+                // all day events are 07:00:00 GMT tz: undefined
+                if (ev.end && ev.end.diff(ev.start, 'days') === 1) {
+                    console.log(ev.summary+' fromDt='+fromDt.format('MM-DD')+' start='+ev.start.format('MM-DD')+' end='+ev.end.format('MM-DD')+' isSameDay='+fromDt.isSame(ev.start, 'day'));
+                    if (fromDt.format('MM-DD') !== ev.start.format('MM-DD')) {
+                        console.log('\tskipping fromDt '+fromDt.format('MM-DD')+' != start '+ev.start.format('MM-DD'));
+                        return;
+                    }
+                } else if (ev.start < fromDt || ev.start > toDt) {
+                    console.log('\tskipping');
+                    return;
+                }
+                events.push(ev);
             });
             return events;
         });
