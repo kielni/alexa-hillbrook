@@ -1,6 +1,24 @@
-add add {GRADE}
-add add {GRADE} grade
-add add {GRADE} grader
-remove  remove {GRADE}
-remove  remove {GRADE} grade
-remove remove {GRADE} grader
+forDay	{WHEN}
+forDay	give me events for {WHEN}
+forDay	tell me about {WHEN}
+forDay	what's on for {WHEN}
+forDay	what's on {WHEN}
+forDay	what's happening {WHEN}
+forDay	give me the schedule for {WHEN}
+forDay	tell me the schedule for {WHEN}
+forDay	give me the calendar for {WHEN}
+forDay	tell me the calendar for {WHEN}
+add	add {GRADE}
+add	add {GRADE} grade
+add	add a {GRADE} grader
+add	add {GRADE} grader
+add	about a {GRADE} grade
+add	about {GRADE} grade
+add	about a {GRADE} grader
+add	about {GRADE} grader
+remove  do not tell me about {GRADE} grade
+remove	remove {GRADE} grade
+remove	remove a {GRADE} grader
+remove	remove {GRADE} grader
+remove  drop {GRADE} grade
+

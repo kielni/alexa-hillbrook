@@ -1,5 +1,16 @@
+
+node index --schema
 {
    "intents": [
+      {
+         "intent": "forDay",
+         "slots": [
+            {
+               "name": "WHEN",
+               "type": "AMAZON.DATE"
+            }
+         ]
+      },
       {
          "intent": "add",
          "slots": [
