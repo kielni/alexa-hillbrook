@@ -4,25 +4,27 @@ Alexa tells you what's happening at school from the Hillbrook School calendar (i
 
 _"Alexa, launch Hillbrook bear"_
 
-Today is B as in beetle day.
+    Today is B as in beetle day.
 
 _"Alexa, ask Hillbrook bear about tomorrow"_
 
-Tomorrow is C as in chinchilla day. Art Show Opening is at 3:30PM.
+    Tomorrow is C as in chinchilla day. Art Show Opening is at 3:30PM.
 
 _"Alexa, what's happening Friday with Hillbrook bear"_
 
-Friday is E as in earwig day.  It's free dress day.
+    Friday is E as in earwig day.  It's free dress day.
 
-_Alexa can also tell you about grade-specific events, such as library._
+Alexa can also tell you about grade-specific events, such as library.=
 
-_"Alexa, tell Hillbrook bear to add second grade"_
+_"Alexa, ask Hillbrook bear about second grade"_
 
-Tomorrow is C as in cat day.  Art Show Opening is at 3:30PM.  Pack your swim gear.  Teslas, bring your library books back.
+    Tomorrow is C as in cat day.  Art Show Opening is at 3:30PM.  Pack your swim gear.  Teslas, bring your library books back.
+
+Once you request a grade, it'll be saved until you remove it.
 
 _"Alexa, tell Hillbrook bear to drop second grade"_
 
-OK, I'll won't tell you about grade events.
+    OK, I'll won't tell you about grade events.
 
 ## development
 
