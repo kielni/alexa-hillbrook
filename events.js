@@ -1,10 +1,12 @@
-var moment = require('moment-timezone'),
-    Promise = require('bluebird'),
+var Promise = require('bluebird'),
+    moment = require('moment-timezone'),
+    rp = require('request-promise'),
     cal = require('./calendar'),
-    dayMessages = require('./day-messages'),
     speech = require('./speech.json');
 
-function toSpeech(dayName, events, grades) {
+
+
+function toSpeech(dayName, events, grades, dayMessages) {
    /*
     { start: { Fri, 13 May 2016 07:00:00 GMT tz: undefined },
       end: { Sat, 14 May 2016 07:00:00 GMT tz: undefined },
@@ -15,18 +17,15 @@ function toSpeech(dayName, events, grades) {
     */
     console.log('toSpeech: loaded '+events.length+' events grades=', grades);
     if (!events || !events.length) {
-        return(['Nothing going on today.']);
+        return('Nothing going on.');
     }
-    var now = moment().tz('America/Los_Angeles');
+    var now = moment.tz(moment(), 'America/Los_Angeles');
     var dayExp = new RegExp(/([A-F]) Day/);
     var noSchool = new RegExp(/no school/i);
     var hbDay = null;
     var say = [];
-    if (dayName !== 'today' && dayName !== 'tomorrow') {
-        say.push("Here's what's happening on "+dayName+'.');
-    }
-    events.forEach(function(ev) { 
-        var start = moment(ev.start);
+    events.forEach(function(ev) {
+        var start = ev.start;
         if (ev.summary.match(noSchool)) {
             say.push('No school '+start.format('dddd')+'.');
             return;
@@ -34,22 +33,34 @@ function toSpeech(dayName, events, grades) {
         var dayMatch = ev.summary.match(dayExp);
         if (dayMatch) {
             hbDay = dayMatch[1];
+            var idx = Math.floor(Math.random()*speech.dayWords[hbDay].length);
             // Today/Tomorrow is X day.
             say.push(dayName.charAt(0).toUpperCase()+dayName.slice(1)+' is '+
-                '<say-as interpret-as="characters">'+hbDay+'</say-as>'+
-                ' day.');
+                '<say-as interpret-as="characters">'+hbDay+'</say-as> '+
+                '<break strength="medium" /> '+
+                'as in '+speech.dayWords[hbDay][idx]+' day.');
         } else {
-            // 2pm or 2:30pm
-            var format = start.minute() === 0 ? 'hA' : 'h:mmA';
             var verb = start.isAfter(now) ? 'is' : 'was';
-            say.push(ev.summary+'  '+verb+' at '+start.format(format)+'.');
+            // don't say time for all-day events
+            if (ev.end.diff(start, 'day') == 1) {
+                if (dayName === 'today' || dayName === 'tomorrow') {
+                    say.push(dayName+' '+verb+' '+ev.summary);
+                } else {
+                    say.push("It's "+ev.summary);
+                }
+            } else {
+                // 2pm or 2:30pm
+                var format = start.minute() === 0 ? 'hA' : 'h:mmA';
+                say.push(ev.summary+'  '+verb+' at '+start.format(format)+'.');
+            }
         }
     });
 
-    if (!grades) {
+    if (!grades || !grades.length) {
         grades = ['2'];
     }
     var i = 0;
+    console.log('hbDay='+hbDay+' hour='+now.hour()+' dayName='+dayName);
     grades.forEach(function(grade) {
         if (!hbDay || (now.hour() > 8 && dayName == 'today') || 
             !dayMessages[grade] || !dayMessages[grade][hbDay]) {
@@ -73,21 +84,27 @@ function toSpeech(dayName, events, grades) {
 }
 
 module.exports = {
-    forDay: function(dt, db, userId, response) {
+    // returns a promise that resolves to SSML to say
+    forDay: function(dt, db, userId) {
+        var now = moment.tz(moment(), 'America/Los_Angeles');
+        var isCurrent = dt === null;
+        if (!dt) {
+            dt = moment.tz(moment(), 'America/Los_Angeles');
+        }
         console.log('forDay dt='+dt.toISOString()+' userId='+userId);
-        var now = moment().tz('America/Los_Angeles');
         var day = dt.day();
         var hour = dt.hour();
         // weekend
         if (day === 6 || (day === 0 && hour < 12) || (day == 5 && hour >= 15)) {
-            response.say("It's the weekend.  Go play.");
-            return;
+            return new Promise(function(resolve) {
+                resolve("It's the weekend.  Go play.");
+            });
         }
 
         var fromDt = moment(dt);
         var toDt = moment(dt).add(1, 'days');
         var dayName;
-        if (now.isSame(dt, 'day')) {
+        if (isCurrent) {
             // after school today; get tomorrow
             if (hour >= 15) {
                 fromDt.add(1, 'days');
@@ -97,18 +114,22 @@ module.exports = {
                 dayName = 'today';
             }
         } else {
-            dayName = dt.format('dddd');
+            if (now.format('MMDD') === dt.format('MMDD')) {
+                dayName = 'today';
+            } else {
+                var tomorrow = moment(now).add(1, 'days');
+                dayName = tomorrow.format('MMDD') === dt.format('MMDD') ? 'tomorrow' : dt.format('dddd');
+            }
         }
 
         var promises = [
             cal.loadEvents(fromDt, toDt),
-            db.get(userId)
+            db.get(userId),
+            rp('https://s3.amazonaws.com/kielni-alexa/day-messages.json')
         ];
-        var self = this;
-        Promise.all(promises).then(function(results) {
-            response.say(toSpeech(dayName, results[0], results[1]));
-            response.send();
+        return Promise.all(promises).then(function(results) {
+            var dayMessages = results[2] ? JSON.parse(results[2]) : null;
+            return toSpeech(dayName, results[0], results[1], dayMessages);
         });
-        return false;
     }
 };

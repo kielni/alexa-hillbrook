@@ -26,5 +26,16 @@
         "sixth": "6",
         "seventh": "7",
         "eighth": "8"
-    }
+    },
+
+    "dayWords": {
+        "A": ["albatross", "alligator", "ant", "armadillo", "antelope"],
+        "B": ["baboon", "badger", "bat", "bear", "beetle"],
+        "C": ["camel", "cat", "caterpillar", "chicken", "chinchilla"],
+        "D": ["deer", "dingo", "dog", "dolphin", "dragonfly", "duck"],
+        "E": ["eagle", "earwig", "eel", "elephant", "emu"],
+        "F": ["falcon", "ferret", "flamingo", "fox", "frog"]
+    },
+
+    "gradeError": "I don't recognize GRADE. Try pre kindergarten, kindergarten, or first through eighth."
 }

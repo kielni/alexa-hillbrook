@@ -10,23 +10,43 @@ function getDatabase() {
     return app.db;
 }
 
+function getGrade(gradeSlot) {
+    var grade = gradeSlot.match(/(\d)[a-z][a-z]/);
+    return grade || speech.toGrade[gradeSlot];
+}
+
 app.launch(function(request, response) {
-    // TODO: wait for a response
-    return events.forDay(moment().tz('America/Los_Angeles'), getDatabase(), request.userId, response);
+    events.forDay(null, getDatabase(), request.userId).then(function(say) {
+        response.say(say);
+        response.send();
+    });
+    return false;
 });
 
-app.intent('forDay', 
+app.intent('forDay',
     {
         'slots': { 'WHEN': 'AMAZON.DATE' },
         'utterances': [
-            '{for|WHEN}'
+            '{-|WHEN}',
+            'give me events for {-|WHEN}',
+            'tell me about {-|WHEN}',
+            "what's on {for|} {-|WHEN}",
+            "what's happening {-|WHEN}",
+            '{give|tell} me the {schedule|calendar} for {-|WHEN}'
         ]
     },
 
     function(request, response) {
-        var when = moment(request.slot('WHEN')).tz('America/Los_Angeles').startOf('day');
-        console.log('when='+request.slot('WHEN')+' dt='+when.toDate());
-        return events.forDay(when, getDatabase(), request.userId, response);
+        console.log('intent.forDay: when=', request.slot('WHEN'));
+        var when = moment.tz(request.slot('WHEN'), 'America/Los_Angeles').startOf('day');
+        events.forDay(when, getDatabase(), request.userId).then(function(say) {
+            //response.say(when.format('dddd MMMM Do')+'. ');
+            console.log('when text='+when.format('dddd MMMM Do'));
+            console.log('say=', say);
+            response.say(say);
+            response.send();
+        });
+        return false;
     }
 );
 
@@ -34,25 +54,27 @@ app.intent('add',
     {
         'slots': { 'GRADE': 'GRADES' },
         'utterances': [
-            '{add|GRADE} {|grade|grader}'
+            'add {-|GRADE}',
+            'add {-|GRADE} grade',
+            'add {a |} {-|GRADE} grader',
+            'about {a |} {-|GRADE} {grade|grader}'
         ]
     },
     function(request, response) {
-        var gradeSlot = request.slot('GRADE');
-        var grade = speech.toGrade[gradeSlot];
-        console.log('add userID='+request.userId+' grade slot='+gradeSlot+' grade='+grade);
+        var grade = getGrade(request.slot('GRADE'));
+        console.log('intent.add: grade='+request.slot('GRADE')+' got '+grade);
         if (!grade) {
-            response.say("I don't recognize "+gradeSlot+'. Try pre kindergarten, kindergarten, or first through eighth.');
+            response.say(speech.gradeError.replace('GRADE', request.slot('GRADE')));
             return;
         }
         getDatabase().add(request.userId, grade).then(function(resp) {
-            // resp= [ '2', '3' ]
-            var graders = resp.map((function(grade) {
-                return speech.ers[grade];
-            }));
-            response.say("OK, I'll tell you about events for "+
-                graders.join(' and ')+'.');
-            response.send();
+            if (resp.added) { // was added
+                response.say('OK.');
+            }
+            events.forDay(null, getDatabase(), request.userId).then(function(say) {
+                response.say(say);
+                response.send();
+            });
         });
         return false;
     }
@@ -62,29 +84,28 @@ app.intent('remove',
     {
         'slots': {'GRADE': 'GRADES'}, 
         'utterances': [
-            '{remove|GRADE} {|grade|grader}'
+            'remove {-|GRADE} grade',
+            'remove {a |} {-|GRADE} grader'
         ]
     },
 
     function(request, response) {
-        var gradeSlot = request.slot('GRADE');
-        var grade = speech.toGrade[gradeSlot];
-        console.log('remove userID='+request.userId+' grade slot='+gradeSlot+' grade='+grade);
+        var grade = getGrade(request.slot('GRADE'));
+        console.log('intent.remove: grade='+request.slot('GRADE')+' got '+grade);
         if (!grade) {
-            response.say("I don't recognize "+gradeSlot+'.  Try pre kindergarten, kindergarten, or first through eighth');
+            response.say(speech.gradeError.replace('GRADE', request.slot('GRADE')));
             return;
         }
         getDatabase().remove(request.userId, grade).then(function(resp) {
-            // resp= [ '2', '3' ]
-            if (resp.length) {
-                var graders = resp.map((function(grade) {
+            if (resp.grades && resp.grades.length) {
+                var graders = resp.grades.map((function(grade) {
                     return speech.ers[grade];
                 }));
                 response.say("OK, I'll only tell you about events for "+
                     graders.join(' and ')+'.');
 
             } else {
-                response.say("OK, I'll won't tell you about grade-specific events.");
+                response.say("OK, I'll won't tell you about grade events.");
             }
             response.send();
         });
