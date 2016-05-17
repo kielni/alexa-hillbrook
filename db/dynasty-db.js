@@ -10,7 +10,7 @@ module.exports = {
             { grades: [ '2' ], userId: 'amzn1.ask.account.ABCDEF' }
         */
         return userGradeTable.find(userId).then(function(resp) {
-            return resp.grades;
+            return resp ? resp.grades : null;
         });
     },
 
@@ -21,20 +21,20 @@ module.exports = {
             if (response && response.grades) {
                 if (response.grades.indexOf(grade) >= 0) {
                     console.log(userId+' already has grade '+grade);
-                    return response.grades;
+                    return {'grades': response.grades};
                 }
                 var grades = response.grades || [];
                 grades.push(grade);
                 console.log('updating grades for '+userId+' to ', grades);
-                return userGradeTable.update(userId, {grades: grades}).then(function(resp) {
+                return userGradeTable.update(userId, {grades: grades}).then(function() {
                     console.log('update.then grades=', grades);
-                    return grades;
+                    return {'grades': grades, 'added': grade};
                 });
             } else {
                 console.log('setting grades for '+userId+' to ', [grade]);
-                return userGradeTable.insert({userId: userId, grades: [grade]}).then(function(resp) {
+                return userGradeTable.insert({userId: userId, grades: [grade]}).then(function() {
                     console.log('insert.then grades=', [grade]);
-                    return [grade];
+                    return {'grades': grades, 'added': grade};
                 });
             }
         });
@@ -46,23 +46,23 @@ module.exports = {
             var grades = response.grades || [];
             if (!grades) {
                 console.log('no grades for user '+userId);
-                return [];
+                return null;
             }
             var idx = grades.indexOf(grade);
             if (idx < 0) {
                 console.log('user '+userId+' does not have grade '+grade);
-                return grades;
+                return {'grades': grades};
             }
             if (grades.length === 1) {
                 console.log('removing record for '+userId);
-                return userGradeTable.remove(userId).then(function(resp) {
-                    return [];
+                return userGradeTable.remove(userId).then(function() {
+                    return {'grades': grades, 'removed': grade};
                 });
             }
             grades = grades.splice(idx, 1);
             console.log('setting grades for '+userId+' to ', grades);
-            return userGradeTable.update(userId, {grades: grades}).then(function(resp) {
-                return grades;
+            return userGradeTable.update(userId, {grades: grades}).then(function() {
+                return {'grades': grades, 'removed': grade};
             });
         });
     }
