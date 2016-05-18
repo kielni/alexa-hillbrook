@@ -6,6 +6,10 @@ var moment = require('moment-timezone'),
 var app = new alexa.app('hillbrook-calendar');
 app.db = require('./db/mock-db');
 
+var card = {
+    type: 'Standard'
+};
+
 function getDatabase() {
     return app.db;
 }
@@ -15,10 +19,25 @@ function getGrade(gradeSlot) {
     return grade || speech.toGrade[gradeSlot];
 }
 
+function sendResponse(dt, lines, response) {
+    var say = [];
+    var show = [];
+    var tag = new RegExp(/(<([^>]+)>)/ig);
+    lines.forEach(function(line) {
+        say.push('<s>'+line+'</s>');
+        show.push(line.replace(tag, ''));
+    });
+    card.title = dt.format('dddd, MMM D');
+    card.text = show.join('\n');
+    response.card(card);
+    response.say(say.join('\n'));
+    response.send();
+}
+
 app.launch(function(request, response) {
-    events.forDay(null, getDatabase(), request.userId).then(function(say) {
-        response.say(say);
-        response.send();
+    var dt = events.getDate(null);
+    events.forDay(dt, getDatabase(), request.userId).then(function(say) {
+        sendResponse(dt, say, response);
     });
     return false;
 });
@@ -40,11 +59,7 @@ app.intent('forDay',
         console.log('intent.forDay: when=', request.slot('WHEN'));
         var when = moment.tz(request.slot('WHEN'), 'America/Los_Angeles').startOf('day');
         events.forDay(when, getDatabase(), request.userId).then(function(say) {
-            //response.say(when.format('dddd MMMM Do')+'. ');
-            console.log('when text='+when.format('dddd MMMM Do'));
-            console.log('say=', say);
-            response.say(say);
-            response.send();
+            sendResponse(when, say, response);
         });
         return false;
     }
@@ -67,13 +82,13 @@ app.intent('add',
             response.say(speech.gradeError.replace('GRADE', request.slot('GRADE')));
             return;
         }
+        var dt = events.getDate();
         getDatabase().add(request.userId, grade).then(function(resp) {
             if (resp.added) { // was added
                 response.say('OK.');
             }
-            events.forDay(null, getDatabase(), request.userId).then(function(say) {
-                response.say(say);
-                response.send();
+            events.forDay(dt, getDatabase(), request.userId).then(function(say) {
+                sendResponse(dt, say, response);
             });
         });
         return false;
