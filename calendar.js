@@ -48,13 +48,10 @@ module.exports = {
                 }
                 // all day events are 07:00:00 GMT tz: undefined
                 if (ev.end && ev.end.diff(ev.start, 'days') === 1) {
-                    console.log(ev.summary+' fromDt='+fromDt.format('MM-DD')+' start='+ev.start.format('MM-DD')+' end='+ev.end.format('MM-DD')+' isSameDay='+fromDt.isSame(ev.start, 'day'));
                     if (fromDt.format('MM-DD') !== ev.start.format('MM-DD')) {
-                        console.log('\tskipping fromDt '+fromDt.format('MM-DD')+' != start '+ev.start.format('MM-DD'));
                         return;
                     }
                 } else if (ev.start < fromDt || ev.start > toDt) {
-                    console.log('\tskipping');
                     return;
                 }
                 events.push(ev);
