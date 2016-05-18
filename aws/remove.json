@@ -2,7 +2,7 @@
   "session": {
     "sessionId": "SessionId.12345678-aaaa-bbbb-cccc-123412341234",
     "application": {
-      "applicationId": "amzn1.echo-sdk-ams.app.d2097abc-3f26-44dc-8f21-4e44bd588cdc"
+      "applicationId": "amzn1.echo-sdk-ams.app.12345678-aaaa-bbbb-cccc-123412341234"
     },
     "user": {
       "userId": "amzn1.ask.account.ABCDEF"
@@ -18,7 +18,7 @@
       "slots": {
         "GRADE": {
           "name": "GRADE",
-          "value": "second"
+          "value": "5th"
         }
       }
     },
