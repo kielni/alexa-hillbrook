@@ -19,11 +19,11 @@ module.exports = {
         return userGradeTable.find(userId).then(function(response) {
             console.log('dynasty-db.add got response ', response);
             if (response && response.grades) {
-                if (response.grades.indexOf(grade) >= 0) {
-                    console.log(userId+' already has grade '+grade);
-                    return {'grades': response.grades};
-                }
                 var grades = response.grades || [];
+                if (grades.indexOf(grade) >= 0) {
+                    console.log(userId+' already has grade '+grade);
+                    return {'grades': grades};
+                }
                 grades.push(grade);
                 console.log('updating grades for '+userId+' to ', grades);
                 return userGradeTable.update(userId, {grades: grades}).then(function() {
@@ -43,11 +43,11 @@ module.exports = {
     remove: function(userId, grade) {
         return userGradeTable.find(userId).then(function(response) {
             console.log('dynasty-db.remove got response ', response);
-            var grades = response.grades || [];
-            if (!grades) {
+            if (!response || !response.grades) {
                 console.log('no grades for user '+userId);
-                return null;
+                return {'grades': []};
             }
+            var grades = response && response.grades ? response.grades : [];
             var idx = grades.indexOf(grade);
             if (idx < 0) {
                 console.log('user '+userId+' does not have grade '+grade);
@@ -56,7 +56,7 @@ module.exports = {
             if (grades.length === 1) {
                 console.log('removing record for '+userId);
                 return userGradeTable.remove(userId).then(function() {
-                    return {'grades': grades, 'removed': grade};
+                    return {'grades': [], 'removed': grade};
                 });
             }
             grades = grades.splice(idx, 1);
