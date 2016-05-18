@@ -18,7 +18,8 @@ Alexa can also tell you about grade-specific events, such as library.=
 
 _"Alexa, ask Hillbrook bear about second grade"_
 
-    Tomorrow is C as in cat day.  Art Show Opening is at 3:30PM.  Pack your swim gear.  Teslas, bring your library books back.
+    Tomorrow is C as in cat day.  Art Show Opening is at 3:30PM.  
+    Pack your swim gear.  Teslas, bring your library books back.
 
 Once you request a grade, it'll be saved until you remove it.
 
