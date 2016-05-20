@@ -72,6 +72,9 @@ function toSpeech(dayName, events, grades, dayMessages) {
     if (hbDay && now.hour() < 8 && dayName === 'today') {
         var i = 0;
         grades.forEach(function(grade) {
+            if (!dayMessages[grade] || !dayMessages[grade][hbDay]) {
+                return;
+            }
             if (i === 0 && grades.length > 1) {
                 say.push(speech.ers[grade]+', '+dayMessages[grade][hbDay][0]);
                 if (dayMessages[grade][hbDay].length > 1) {
