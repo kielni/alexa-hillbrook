@@ -16,6 +16,9 @@ function getDatabase() {
 
 function getGrade(gradeSlot) {
     var grade = gradeSlot.match(/(\d)[a-z][a-z]/);
+    if (grade && grade.length > 1) {
+        return grade[1];
+    }
     return grade || speech.toGrade[gradeSlot];
 }
 
