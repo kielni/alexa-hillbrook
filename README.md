@@ -33,7 +33,7 @@ _"Alexa, tell Hillbrook bear to drop second grade"_
 
 ## development
 
-Built with [alexa-app](https://github.com/matt-kruse/alexa-app), Alexa command-line [(alcl)](https://github.com/kielni/alcl), and [AWS Lambda](https://aws.amazon.com/lambda/).
+Built with [alexa-app](https://github.com/matt-kruse/alexa-app) and Alexa command-line [(alcl)](https://github.com/kielni/alcl).  Uses [ical](https://www.npmjs.com/package/ical) for parsing Hillbrook's public calendar and [moment](http://momentjs.com/docs/) for date magic.  Hosted on [AWS Lambda](https://aws.amazon.com/lambda/), with grade-specific events in an JSON document on [S3](https://aws.amazon.com/s3/) and user data in [DynamoDB](https://aws.amazon.com/dynamodb/). 
 
 ### local
 
