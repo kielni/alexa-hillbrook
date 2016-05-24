@@ -27,6 +27,10 @@ _"Alexa, tell Hillbrook bear to drop second grade"_
 
     OK, I'll won't tell you about grade events.
 
+
+![VUI diagram](https://github.com/kielni/alexa-hillbrook/blob/master/hillbrook_vui.png "VUI diagram")
+
+
 ## development
 
 Built with [alexa-app](https://github.com/matt-kruse/alexa-app), Alexa command-line [(alcl)](https://github.com/kielni/alcl), and [AWS Lambda](https://aws.amazon.com/lambda/).
