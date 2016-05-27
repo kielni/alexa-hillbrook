@@ -43,14 +43,16 @@ function toSpeech(dayName, events, grades, dayMessages) {
             hbDay = dayMatch[1];
             var idx = Math.floor(Math.random()*speech.dayWords[hbDay].length);
             // Today/Tomorrow/Monday is X day.
-            say.push(dayName.charAt(0).toUpperCase()+dayName.slice(1)+' is '+
+            say.push(dayName+' is '+
                 '<say-as interpret-as="characters">'+hbDay+'</say-as> '+
                 '<break strength="medium" /> '+
                 'as in '+speech.dayWords[hbDay][idx]+' day.');
         } else {
             var verb = start.isAfter(now) ? 'is' : 'was';
             // don't say time for all-day events
-            if (ev.end.diff(start, 'day') == 1) {
+            if (ev.end.diff(start, 'day') === 1) {
+                // all day events start at midnight UTC (4/5pm PT previous day)
+                verb = 'is';
                 if (dayName === 'today' || dayName === 'tomorrow') {
                     say.push(dayName+' '+verb+' '+ev.summary);
                 } else {
@@ -86,8 +88,7 @@ function toSpeech(dayName, events, grades, dayMessages) {
             i += 1;
         });
     }
-    console.log('returning ', say);
-    return say;
+    return say.map(function(line) { return line[0].toUpperCase()+line.slice(1) });
 }
 
 module.exports = {
