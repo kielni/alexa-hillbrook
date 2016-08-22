@@ -49,6 +49,8 @@ function toSpeech(dayName, events, grades, dayMessages) {
                 'as in '+speech.dayWords[hbDay][idx]+' day.');
         } else {
             var verb = start.isAfter(now) ? 'is' : 'was';
+            // & is invalid ssml
+            ev.summary = ev.summary.replace(new RegExp('&', 'g'), 'and');
             // don't say time for all-day events
             if (ev.end.diff(start, 'day') === 1) {
                 // all day events start at midnight UTC (4/5pm PT previous day)
@@ -56,7 +58,7 @@ function toSpeech(dayName, events, grades, dayMessages) {
                 if (dayName === 'today' || dayName === 'tomorrow') {
                     say.push(dayName+' '+verb+' '+ev.summary);
                 } else {
-                    say.push("It's "+ev.summary);
+                    say.push("It's "+ev.summary+'.');
                 }
             } else {
                 // 2pm or 2:30pm
@@ -88,20 +90,17 @@ function toSpeech(dayName, events, grades, dayMessages) {
             i += 1;
         });
     }
-    return say.map(function(line) { return line[0].toUpperCase()+line.slice(1) });
+    return say.map(function(line) { return line[0].toUpperCase()+line.slice(1); });
 }
 
 module.exports = {
     getDate: function(dt) {
-        var now = moment.tz(moment(), 'America/Los_Angeles');
         var isCurrent = dt === null;
         if (!dt) {
             dt = moment.tz(moment(), 'America/Los_Angeles');
         }
-        var day = dt.day();
         var hour = dt.hour();
         var fromDt = moment(dt);
-        var dayName;
         console.log('getDate: dt='+dt.toDate()+' isCurrent='+isCurrent+' hour='+hour);
         if (isCurrent && hour >= 15) {
             // after school today; get tomorrow
@@ -115,9 +114,9 @@ module.exports = {
         // weekend
         var day = fromDt.day();
         var hour = fromDt.hour();
-        if (day === 6 || (day === 0 && hour < 12) || (day == 5 && hour >= 15)) {
+        if (day === 6 || (day === 0 && hour < 12) || (day === 5 && hour >= 15)) {
             return new Promise(function(resolve) {
-                resolve(["It's the weekend.  Go play."]);
+                resolve(["It's the weekend. Go play."]);
             });
         }
         var toDt = moment(fromDt).add(1, 'days');

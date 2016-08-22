@@ -33,7 +33,7 @@ function sendResponse(dt, lines, response) {
     card.title = dt.format('dddd, MMM D');
     card.text = show.join('\n');
     response.card(card);
-    response.say(say.join('\n'));
+    response.say(say.join(' '));
     response.send();
 }
 
@@ -100,7 +100,7 @@ app.intent('add',
 
 app.intent('remove',
     {
-        'slots': {'GRADE': 'GRADES'}, 
+        'slots': {'GRADE': 'GRADES'},
         'utterances': [
             'remove {-|GRADE} grade',
             'remove {a |} {-|GRADE} grader'
@@ -131,6 +131,10 @@ app.intent('remove',
     }
 );
 
+app.sessionEnded(function(request/*, response*/) {
+    console.log('session ended for ', request.userId);
+});
+
 if (process.argv.length > 2) {
     var arg = process.argv[2];
     if (arg === '-s' || arg === '--schema') {
@@ -141,6 +145,4 @@ if (process.argv.length > 2) {
     }
 }
 
-// dynasty.table('user_grade').find(userId)
-// update?
 module.exports = app;
