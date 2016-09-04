@@ -68,8 +68,8 @@ function toSpeech(dayName, events, grades, dayMessages) {
         }
     });
 
-    if (!grades || !grades.length) {
-        grades = ['2'];
+    if (!grades) {
+        grades = [];
     }
     console.log('hbDay='+hbDay+' hour='+now.hour()+' dayName='+dayName);
     // reminders only same-day morning
@@ -127,8 +127,11 @@ module.exports = {
         ];
         var dayName = getDayName(fromDt);
         return Promise.all(promises).then(function(results) {
-            var dayMessages = results[2] ? JSON.parse(results[2]) : null;
-            return toSpeech(dayName, results[0], results[1], dayMessages);
+            var events = results[0];
+            var user = results[1];
+            var messages = results[2];
+            var dayMessages = messages ? JSON.parse(messages) : null;
+            return toSpeech(dayName, events, user, dayMessages);
         });
     }
 };
