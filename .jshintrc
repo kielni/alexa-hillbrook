@@ -1,17 +1,5 @@
 {
-  "predef": [
-    "document",
-    "window",
-    "-Promise",
-    "moment",
-    "_",
-    "ga",
-    "Tether",
-    "Raven",
-    "Keen",
-    "google"
-  ],
-  "browser": true,
+  "node": true,
   "boss": true,
   "curly": true,
   "debug": false,
