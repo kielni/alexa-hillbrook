@@ -1,5 +1,6 @@
 {
   "name": "hillbrookcalendar",
+  "repository": "https://github.com/kielni/alexa-hillbrook",
   "version": "1.0.1",
   "description": "Get Hillbrook School calendar events from Alexa",
   "main": "index.js",
@@ -16,7 +17,7 @@
   "dependencies": {
     "alexa-app": "^2.3.3",
     "bluebird": "^3.3.5",
-    "dynasty": "^0.2.4",
+    "firebase": "^3.3.0",
     "ical": "^0.5.0",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
