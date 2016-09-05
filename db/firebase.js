@@ -10,8 +10,6 @@ firebase.initializeApp({
     databaseURL: config.databaseURL
 });
 
-var db = firebase.database();
-
 /*
     userGrades: {
         user1: {
@@ -23,22 +21,17 @@ var db = firebase.database();
     }
 */
 
-function userRef(userId) {
-    return db.ref('/userGrades/' + userId);
-}
-
 function keyify(userId) {
     return userId.replace(/\W+/g, '_');
 }
 
 module.exports = {
-    label: 'dynasty',
+    label: 'firebase',
 
     get: function(userId) {
         var uid = keyify(userId);
-        console.log('firebase.get '+userId+' uid=', uid);
-        return userRef(uid).once('value').then(function(snapshot) {
-            console.log('value', snapshot.val());
+        var userRef = firebase.database().ref('/userGrades/'+uid);
+        return userRef.once('value').then(function(snapshot) {
             return snapshot.val();
         });
     },
@@ -48,20 +41,17 @@ module.exports = {
         // always save as string to match type in day messages
         grade = grade+'';
         console.log('firebase.add '+userId+' grade '+grade);
-        this.get(uid).then(function(val) {
-            console.log('got val', val);
-            var grades = val && val.grades ? val.grades : [];
-            console.log('grades=', grades);
+        var userRef = firebase.database().ref('/userGrades/'+uid);
+        return userRef.once('value').then(function(snapshot) {
+            var user = snapshot.val();
+            var grades = user && user.grades ? user.grades : [];
             var isNew = grades.indexOf(grade) < 0;
             var ret = {};
             if (isNew) {
                 grades.push(grade);
                 ret.added = grade;
             }
-            console.log('setting /userGrades/' + uid + ' to ', grades);
-            userRef(uid).set({grades: grades}).then(() => {
-                console.log('done set');
-            });
+            userRef.set({grades: grades});
             ret.grades = grades;
             console.log('returning ', ret);
             return ret;
@@ -72,18 +62,18 @@ module.exports = {
         var uid = keyify(userId);
         // always save as string to match type in day messages
         grade = grade+'';
-        this.get(uid).then(function(val) {
-            console.log('got val', val);
-            var grades = val && val.grades ? val.grades : [];
-            console.log('grades=', grades);
+        console.log('firebase.remove '+userId+' grade '+grade);
+        var userRef = firebase.database().ref('/userGrades/'+uid);
+        return userRef.once('value').then(function(snapshot) {
+            var user = snapshot.val();
+            var grades = user && user.grades ? user.grades : [];
             var ret = {};
             var idx = grades.indexOf(grade);
             if (idx >= 0) {
                 grades.splice(idx, 1);
                 ret.removed = grade;
             }
-            console.log('setting /userGrades/' + uid + ' to ', grades);
-            userRef(uid).set({grades: grades});
+            userRef.set({grades: grades});
             ret.grades = grades;
             console.log('returning ', ret);
             return ret;
