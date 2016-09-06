@@ -36,7 +36,7 @@ _"Alexa, tell Hillbrook bear to drop second grade"_
 ![architecture](https://github.com/kielni/alexa-hillbrook/blob/master/images/alexa-calendar.png "architecture diagram")
 
 
-Built with [alexa-app](https://github.com/matt-kruse/alexa-app) and Alexa command-line [(alcl)](https://github.com/kielni/alcl).  Uses [ical](https://www.npmjs.com/package/ical) for parsing Hillbrook's public calendar and [moment](http://momentjs.com/docs/) for date magic.  Hosted on [AWS Lambda](https://aws.amazon.com/lambda/), with grade-specific events in an JSON document on [S3](https://aws.amazon.com/s3/) and user data in [DynamoDB](https://aws.amazon.com/dynamodb/). 
+Built with [alexa-app](https://github.com/matt-kruse/alexa-app) and Alexa command-line [(alcl)](https://github.com/kielni/alcl).  Uses [ical](https://www.npmjs.com/package/ical) for parsing Hillbrook's public calendar and [moment](http://momentjs.com/docs/) for date magic.  Hosted on [AWS Lambda](https://aws.amazon.com/lambda/), with grade-specific events in an JSON document on [S3](https://aws.amazon.com/s3/) and user data in [Firebase](https://firebase.google.com/). 
 
 ### local
 
@@ -60,9 +60,9 @@ The AWS Lambda function handler is set to `lambda.handler`.
 
     exports.handler = app.lambda();
 
-and defines a DynamoDB using [dynasty](https://www.npmjs.com/package/dynasty):
+and defines a Firebase database using the [firebase](https://www.npmjs.com/package/firebase) package:
 
-    app.db = require('db/dynasty-db');
+    app.db = require('db/firebase');
 
 #### push to AWS
 
