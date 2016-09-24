@@ -1,7 +1,7 @@
 var Promise = require('bluebird'),
     moment = require('moment-timezone'),
-    rp = require('request-promise'),
     cal = require('./calendar'),
+    days = require('./days.json'),
     speech = require('./speech.json');
 
 function getDayName(dt) {
@@ -15,7 +15,7 @@ function getDayName(dt) {
     return dt.format('dddd');
 }
 
-function toSpeech(dayName, events, grades, dayMessages) {
+function toSpeech(dayName, events, grades) {
    /*
     { start: { Fri, 13 May 2016 07:00:00 GMT tz: undefined },
       end: { Sat, 14 May 2016 07:00:00 GMT tz: undefined },
@@ -76,16 +76,16 @@ function toSpeech(dayName, events, grades, dayMessages) {
     if (hbDay && now.hour() < 8 && dayName === 'today') {
         var i = 0;
         grades.forEach(function(grade) {
-            if (!dayMessages[grade] || !dayMessages[grade][hbDay]) {
+            if (!days[grade] || !days[grade][hbDay]) {
                 return;
             }
             if (i === 0 && grades.length > 1) {
-                say.push(speech.ers[grade]+', '+dayMessages[grade][hbDay][0]);
-                if (dayMessages[grade][hbDay].length > 1) {
-                    say = say.concat(dayMessages[grade][hbDay].slice(1));
+                say.push(speech.ers[grade]+', '+days[grade][hbDay][0]);
+                if (days[grade][hbDay].length > 1) {
+                    say = say.concat(days[grade][hbDay].slice(1));
                 }
             } else {
-                say = say.concat(dayMessages[grade][hbDay]);
+                say = say.concat(days[grade][hbDay]);
             }
             i += 1;
         });
@@ -122,16 +122,14 @@ module.exports = {
         var toDt = moment(fromDt).add(1, 'days');
         var promises = [
             cal.loadEvents(fromDt, toDt),
-            db.get(userId),
-            rp('https://s3.amazonaws.com/kielni-alexa/day-messages.json')
+            db.get(userId)
         ];
         var dayName = getDayName(fromDt);
         return Promise.all(promises).then(function(results) {
             var events = results[0];
             var user = results[1];
-            var messages = results[2];
-            var dayMessages = messages ? JSON.parse(messages) : null;
-            return toSpeech(dayName, events, user, dayMessages);
+            var grades = user && user.grades ? user.grades : [];
+            return toSpeech(dayName, events, grades);
         });
     }
 };
