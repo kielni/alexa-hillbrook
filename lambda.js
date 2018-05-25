@@ -1,4 +1,5 @@
-var app = require('index');
+const app = require('index');
+
 app.db = require('db/firebase');
 
 exports.handler = app.lambda();

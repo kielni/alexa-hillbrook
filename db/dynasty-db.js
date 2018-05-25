@@ -1,10 +1,11 @@
-var dynasty = require('dynasty')({});
-var userGradeTable = dynasty.table('user_grade');
+const dynasty = require('dynasty')({});
+
+const userGradeTable = dynasty.table('user_grade');
 
 module.exports = {
     label: 'dynasty',
 
-    get: function(userId) {
+    get(userId) {
         console.log(`dynasty-db.get ${userId}`);
         /*
             { grades: [ '2' ], userId: 'amzn1.ask.account.ABCDEF' }
@@ -13,7 +14,7 @@ module.exports = {
         return userGradeTable.find(userId).then(resp => resp ? resp.grades : null);
     },
 
-    add: function(userId, grade) {
+    add(userId, grade) {
         console.log(`dynasty-db.add ${userId} grade ${grade}`);
 
         return userGradeTable.find(userId).then((response) => {
@@ -45,8 +46,7 @@ module.exports = {
         });
     },
 
-    remove: function(userId, grade) {
-
+    remove(userId, grade) {
         return userGradeTable.find(userId).then((response) => {
             console.log('dynasty-db.remove got response ', response);
             if (!response || !response.grades) {
@@ -64,16 +64,17 @@ module.exports = {
                 return { grades };
             }
             if (grades.length === 1) {
-                console.log(`removing record for ${userId}`);
-
                 return userGradeTable.remove(userId).then(() => {
+                    console.log(`removing record for ${userId}`);
+
                     return { grades: [], removed: grade };
                 });
             }
             grades = grades.splice(idx, 1);
-            console.log(`setting grades for ${userId} to `, grades);
 
-            return userGradeTable.update(userId, {grades: grades}).then(() => {
+            return userGradeTable.update(userId, { grades }).then(() => {
+                console.log(`setting grades for ${userId} to `, grades);
+
                 return { grades, removed: grade };
             });
         });

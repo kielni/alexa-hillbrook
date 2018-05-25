@@ -1,9 +1,9 @@
-var ical = require('ical'),
-    moment = require('moment-timezone'),
-    AWS = require('aws-sdk'),
-    s3 = new AWS.S3(),
-    rp = require('request-promise');
+const ical = require('ical');
+const moment = require('moment-timezone');
+const AWS = require('aws-sdk');
+const rp = require('request-promise');
 
+const s3 = new AWS.S3();
 const url = 'https://hillbrook.myschoolapp.com/podium/feed/iCal.aspx?z=Q%2bQ8E04WgcQ8e6RMGhn4rQtO5TFEtZOKzIzn5AmAbleTcLKlyoBEqvSxZKvMOSOxQ8UL%2fDAVwPLT5fs8sm3xqA%3d%3d';
 
 /*
@@ -38,7 +38,7 @@ function keepEvent(ev, fromDt, toDt) {
 }
 
 module.exports = {
-    cacheEvents: function() {
+    cacheEvents() {
         const now = moment();
 
         return this.loadEvents(now, moment().add(7, 'days')).then((ev) => {
@@ -62,7 +62,7 @@ module.exports = {
         });
     },
 
-    loadEventsFromFile: function(fromDt, toDt) {
+    loadEventsFromFile(fromDt, toDt) {
         const start = (new Date()).getTime();
         console.log(`start load events from file for ${fromDt.toISOString()} to ${toDt.toISOString()} start=${start}`);
         /*
@@ -96,7 +96,7 @@ module.exports = {
         });
     },
 
-    loadEvents: function(fromDt, toDt) {
+    loadEvents(fromDt, toDt) {
         console.log(`start load events for ${fromDt.toISOString()} to ${toDt.toISOString()}`);
 
         return rp(url).then((response) => {

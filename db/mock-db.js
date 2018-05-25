@@ -1,5 +1,5 @@
-var Promise = require('bluebird'),
-    data = require('./mock-data.json');
+const Promise = require('bluebird');
+const data = require('./mock-data.json');
 
 function getGrades(userId) {
     return data[userId] && data[userId].grades ? data[userId].grades : [];
@@ -8,13 +8,13 @@ function getGrades(userId) {
 module.exports = {
     label: 'mock',
 
-    get: function(userId) {
+    get(userId) {
         console.log(`mock-db.get ${userId}`);
 
         return new Promise(resolve => resolve(getGrades(userId)));
     },
 
-    add: function(userId, grade) {
+    add(userId, grade) {
         console.log(`mock-db.add ${userId} grade=${grade}`);
 
         return new Promise((resolve) => {
@@ -24,7 +24,7 @@ module.exports = {
         });
     },
 
-    remove: function(userId, grade) {
+    remove(userId, grade) {
         console.log(`mock-db.remove ${userId} grade=${grade}`);
 
         return new Promise((resolve) => {

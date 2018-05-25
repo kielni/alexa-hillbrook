@@ -1,5 +1,5 @@
-var firebase = require('firebase');
-var config = require('./config.json');
+const firebase = require('firebase');
+const config = require('./config.json');
 
 firebase.initializeApp({
     serviceAccount: {
@@ -28,7 +28,7 @@ function keyify(userId) {
 module.exports = {
     label: 'firebase',
 
-    get: function(userId) {
+    get(userId) {
         const start = (new Date()).getTime();
         console.log('start db.get', start);
         const uid = keyify(userId);
@@ -41,7 +41,7 @@ module.exports = {
         });
     },
 
-    add: function(userId, grade) {
+    add(userId, grade) {
         const uid = keyify(userId);
         // always save as string to match type in day messages
         grade = grade+'';
@@ -65,7 +65,7 @@ module.exports = {
         });
     },
 
-    remove: function(userId, grade) {
+    remove(userId, grade) {
         const uid = keyify(userId);
         // always save as string to match type in day messages
         grade = grade+'';

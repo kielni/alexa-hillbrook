@@ -1,7 +1,7 @@
-var moment = require('moment-timezone'),
-    alexa = require('alexa-app'),
-    events = require('./events'),
-    speech = require('./speech.json');
+const moment = require('moment-timezone');
+const alexa = require('alexa-app');
+const events = require('./events');
+const speech = require('./speech.json');
 
 const app = new alexa.app('hillbrook-calendar');
 app.db = require('./db/mock-db');

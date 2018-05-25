@@ -1,8 +1,8 @@
-var Promise = require('bluebird'),
-    moment = require('moment-timezone'),
-    cal = require('./calendar'),
-    days = require('./days.json'),
-    speech = require('./speech.json');
+const Promise = require('bluebird');
+const moment = require('moment-timezone');
+const cal = require('./calendar');
+const days = require('./days.json');
+const speech = require('./speech.json');
 
 function getDayName(dt) {
     const now = moment.tz(moment(), 'America/Los_Angeles');
@@ -41,7 +41,9 @@ function toSpeech(dayName, events, grades) {
         const dayMatch = ev.summary.match(dayExp);
 
         if (ev.summary.match(noSchool)) {
-            return [`No school ${start.format('dddd')}.`];
+            say.push([`No school ${start.format('dddd')}.`]);
+
+            return;
         }
 
         if (dayMatch) {
@@ -99,7 +101,7 @@ function toSpeech(dayName, events, grades) {
 }
 
 module.exports = {
-    getDate: function(dt) {
+    getDate(dt) {
         const isCurrent = dt === null;
         if (!dt) {
             dt = moment.tz(moment(), 'America/Los_Angeles');
@@ -116,7 +118,7 @@ module.exports = {
     },
 
     // returns a promise that resolves to an array of lines to say
-    forDay: function(fromDt, db, userId) {
+    forDay(fromDt, db, userId) {
         // weekend
         const day = fromDt.day();
         const hour = fromDt.hour();

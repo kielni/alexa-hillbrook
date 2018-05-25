@@ -1,5 +1,5 @@
-var cal = require('./calendar');
-var moment = require('moment');
+const cal = require('./calendar');
+const moment = require('moment');
 
 // cal.cacheEvents();
 /*
