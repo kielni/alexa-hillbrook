@@ -3,31 +3,32 @@ var moment = require('moment-timezone'),
     events = require('./events'),
     speech = require('./speech.json');
 
-var app = new alexa.app('hillbrook-calendar');
+const app = new alexa.app('hillbrook-calendar');
 app.db = require('./db/mock-db');
 
-var card = {
-    type: 'Standard'
-};
+const card = { type: 'Standard' };
 
 function getDatabase() {
     return app.db;
 }
 
 function getGrade(gradeSlot) {
-    var grade = gradeSlot.match(/(\d)[a-z][a-z]/);
+    const grade = gradeSlot.match(/(\d)[a-z][a-z]/);
+
     if (grade && grade.length > 1) {
         return grade[1];
     }
+
     return grade || speech.toGrade[gradeSlot];
 }
 
 function sendResponse(dt, lines, response) {
-    var say = [];
-    var show = [];
-    var tag = new RegExp(/(<([^>]+)>)/ig);
-    lines.forEach(function(line) {
-        say.push('<s>'+line+'</s>');
+    const say = [];
+    const show = [];
+    const tag = new RegExp(/(<([^>]+)>)/ig);
+
+    lines.forEach((line) => {
+        say.push(`<s>${line}</s>`);
         show.push(line.replace(tag, ''));
     });
     card.title = dt.format('dddd, MMM D');
@@ -38,54 +39,62 @@ function sendResponse(dt, lines, response) {
 }
 
 app.launch(function(request, response) {
-    var dt = events.getDate(null);
+    const dt = events.getDate(null);
+
     events.forDay(dt, getDatabase(), request.userId).then(function(say) {
         sendResponse(dt, say, response);
     });
+
     return false;
 });
 
-app.intent('forDay',
+app.intent(
+    'forDay',
     {
-        'slots': { 'WHEN': 'AMAZON.DATE' },
-        'utterances': [
+        slots: { WHEN: 'AMAZON.DATE' },
+        utterances: [
             '{-|WHEN}',
             'give me events for {-|WHEN}',
             'tell me about {-|WHEN}',
             "what's on {for|} {-|WHEN}",
             "what's happening {-|WHEN}",
-            '{give|tell} me the {schedule|calendar} for {-|WHEN}'
-        ]
+            '{give|tell} me the {schedule|calendar} for {-|WHEN}',
+        ],
     },
 
     function(request, response) {
-        console.log('intent.forDay: when=', request.slot('WHEN'));
-        var when = moment.tz(request.slot('WHEN'), 'America/Los_Angeles').startOf('day');
+        console.log(`intent.forDay: when=${request.slot('WHEN')}`);
+        const when = moment.tz(request.slot('WHEN'), 'America/Los_Angeles').startOf('day');
+
         events.forDay(when, getDatabase(), request.userId).then(function(say) {
             sendResponse(when, say, response);
         });
+
         return false;
     }
 );
 
-app.intent('add',
+app.intent(
+    'add',
     {
-        'slots': { 'GRADE': 'GRADES' },
-        'utterances': [
+        slots: { GRADE: 'GRADES' },
+        utterances: [
             'add {-|GRADE}',
             'add {-|GRADE} grade',
             'add {a |} {-|GRADE} grader',
-            'about {a |} {-|GRADE} {grade|grader}'
-        ]
+            'about {a |} {-|GRADE} {grade|grader}',
+        ],
     },
     function(request, response) {
-        var grade = getGrade(request.slot('GRADE'));
-        console.log('intent.add: grade='+request.slot('GRADE')+' got '+grade);
+        const grade = getGrade(request.slot('GRADE'));
+        console.log(`intent.add: grade=${request.slot('GRADE')} got ${grade}`);
         if (!grade) {
             response.say(speech.gradeError.replace('GRADE', request.slot('GRADE')));
-            return;
+
+            return true;
         }
-        var dt = events.getDate();
+
+        const dt = events.getDate();
         getDatabase().add(request.userId, grade).then(function(resp) {
             if (resp.added) { // was added
                 response.say('OK.');
@@ -94,49 +103,52 @@ app.intent('add',
                 sendResponse(dt, say, response);
             });
         });
+
         return false;
     }
 );
 
-app.intent('remove',
+app.intent(
+    'remove',
     {
-        'slots': {'GRADE': 'GRADES'},
-        'utterances': [
+        slots: { GRADE: 'GRADES' },
+        utterances: [
             'remove {-|GRADE} grade',
-            'remove {a |} {-|GRADE} grader'
-        ]
+            'remove {a |} {-|GRADE} grader',
+        ],
     },
 
     function(request, response) {
-        var grade = getGrade(request.slot('GRADE'));
-        console.log('intent.remove: grade='+request.slot('GRADE')+' got '+grade);
+        const grade = getGrade(request.slot('GRADE'));
+
+        console.log(`intent.remove: grade=${request.slot('GRADE')} got ${grade}`);
         if (!grade) {
             response.say(speech.gradeError.replace('GRADE', request.slot('GRADE')));
-            return;
+
+            return true;
         }
         getDatabase().remove(request.userId, grade).then(function(resp) {
             if (resp.grades && resp.grades.length) {
-                var graders = resp.grades.map((function(grade) {
-                    return speech.ers[grade];
-                }));
-                response.say("OK, I'll only tell you about events for "+
-                    graders.join(' and ')+'.');
+                const graders = resp.grades.map(gradeNum => speech.ers[gradeNum]);
 
+                response.say(`OK, I'll only tell you about events for ${graders.join(' and ')}.`);
             } else {
-                response.say("OK, I'll won't tell you about grade events.");
+                response.say("OK, I won't tell you about grade events.");
             }
             response.send();
         });
+
         return false;
     }
 );
 
-app.sessionEnded(function(request/*, response*/) {
-    console.log('session ended for ', request.userId);
+app.sessionEnded(function(request/* , response */) {
+    console.log(`session ended for ${request.userId}`);
 });
 
 if (process.argv.length > 2) {
-    var arg = process.argv[2];
+    const arg = process.argv[2];
+
     if (arg === '-s' || arg === '--schema') {
         console.log(app.schema());
     }

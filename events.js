@@ -5,18 +5,19 @@ var Promise = require('bluebird'),
     speech = require('./speech.json');
 
 function getDayName(dt) {
-    var now = moment.tz(moment(), 'America/Los_Angeles');
+    const now = moment.tz(moment(), 'America/Los_Angeles');
     if (dt.format('MMDD') === now.format('MMDD')) {
         return 'today';
     }
     if (dt > now && dt.diff(now, 'day') < 2) {
         return 'tomorrow';
     }
+
     return dt.format('dddd');
 }
 
 function toSpeech(dayName, events, grades) {
-   /*
+    /*
     { start: { Fri, 13 May 2016 07:00:00 GMT tz: undefined },
       end: { Sat, 14 May 2016 07:00:00 GMT tz: undefined },
       summary: 'F Day' }
@@ -24,31 +25,33 @@ function toSpeech(dayName, events, grades) {
       end: { Fri, 13 May 2016 21:30:00 GMT tz: 'America/Los_Angeles' },
       summary: 'All School Walkathon' }
     */
-    console.log('toSpeech: loaded '+events.length+' events grades=', grades);
+    console.log(`toSpeech: loaded ${events.length} events grades=${grades}`);
     if (!events || !events.length) {
         return(['Nothing going on.']);
     }
-    var now = moment.tz(moment(), 'America/Los_Angeles');
-    var dayExp = new RegExp(/([A-F]) Day/);
-    var noSchool = new RegExp(/no school/i);
-    var hbDay = null;
-    var say = [];
-    events.forEach(function(ev) {
+
+    const now = moment.tz(moment(), 'America/Los_Angeles');
+    const dayExp = new RegExp(/([A-F]) Day/);
+    const noSchool = new RegExp(/no school/i);
+    const hbDay = null;
+    let say = [];
+
+    events.forEach((ev) => {
+        const start = ev.start;
+        const dayMatch = ev.summary.match(dayExp);
+
         if (ev.summary.match(noSchool)) {
-            return ['No school '+start.format('dddd')+'.'];
+            return [`No school ${start.format('dddd')}.`];
         }
-        var start = ev.start;
-        var dayMatch = ev.summary.match(dayExp);
+
         if (dayMatch) {
-            hbDay = dayMatch[1];
-            var idx = Math.floor(Math.random()*speech.dayWords[hbDay].length);
+            const hbDay = dayMatch[1];
+            const idx = Math.floor(Math.random() * speech.dayWords[hbDay].length);
             // Today/Tomorrow/Monday is X day.
-            say.push(dayName+' is '+
-                '<say-as interpret-as="characters">'+hbDay+'</say-as> '+
-                '<break strength="medium" /> '+
-                'as in '+speech.dayWords[hbDay][idx]+' day.');
+            say.push(`${dayName} is <say-as interpret-as="characters">${hbDay}</say-as>
+                <break strength="medium" /> as in ${speech.dayWords[hbDay][idx]} day.`);
         } else {
-            var verb = start.isAfter(now) ? 'is' : 'was';
+            let verb = start.isAfter(now) ? 'is' : 'was';
             // & is invalid ssml
             ev.summary = ev.summary.replace(new RegExp('&', 'g'), 'and');
             // don't say time for all-day events
@@ -56,14 +59,14 @@ function toSpeech(dayName, events, grades) {
                 // all day events start at midnight UTC (4/5pm PT previous day)
                 verb = 'is';
                 if (dayName === 'today' || dayName === 'tomorrow') {
-                    say.push(dayName+' '+verb+' '+ev.summary);
+                    say.push(`${dayName} ${verb} ${ev.summary}`);
                 } else {
-                    say.push("It's "+ev.summary+'.');
+                    say.push(`It's ${ev.summary}.`);
                 }
             } else {
                 // 2pm or 2:30pm
-                var format = start.minute() === 0 ? 'hA' : 'h:mmA';
-                say.push(ev.summary+'  '+verb+' at '+start.format(format)+'.');
+                const format = start.minute() === 0 ? 'hA' : 'h:mmA';
+                say.push(`${ev.summary} ${verb} at ${start.format(format)}.`);
             }
         }
     });
@@ -71,16 +74,17 @@ function toSpeech(dayName, events, grades) {
     if (!grades) {
         grades = [];
     }
-    console.log('hbDay='+hbDay+' hour='+now.hour()+' dayName='+dayName);
+    console.log(`hbDay=${hbDay} hour=${now.hour()} dayName=${dayName}`);
     // reminders only same-day morning
     if (hbDay && now.hour() < 8 && dayName === 'today') {
-        var i = 0;
-        grades.forEach(function(grade) {
+        let i = 0;
+
+        grades.forEach((grade) => {
             if (!days[grade] || !days[grade][hbDay]) {
                 return;
             }
             if (i === 0 && grades.length > 1) {
-                say.push(speech.ers[grade]+', '+days[grade][hbDay][0]);
+                say.push(`${speech.ers[grade]}, ${days[grade][hbDay][0]}`);
                 if (days[grade][hbDay].length > 1) {
                     say = say.concat(days[grade][hbDay].slice(1));
                 }
@@ -90,46 +94,50 @@ function toSpeech(dayName, events, grades) {
             i += 1;
         });
     }
-    return say.map(function(line) { return line[0].toUpperCase()+line.slice(1); });
+
+    return say.map(line => line[0].toUpperCase() + line.slice(1));
 }
 
 module.exports = {
     getDate: function(dt) {
-        var isCurrent = dt === null;
+        const isCurrent = dt === null;
         if (!dt) {
             dt = moment.tz(moment(), 'America/Los_Angeles');
         }
-        var hour = dt.hour();
-        var fromDt = moment(dt);
-        console.log('getDate: dt='+dt.toDate()+' isCurrent='+isCurrent+' hour='+hour);
+        const hour = dt.hour();
+        const fromDt = moment(dt);
+        console.log(`getDate: dt=${dt.toDate()} isCurrent=${isCurrent} hour=${hour}`);
         if (isCurrent && hour >= 15) {
             // after school today; get tomorrow
             fromDt.add(1, 'days').startOf('day');
         }
+
         return fromDt;
     },
 
     // returns a promise that resolves to an array of lines to say
     forDay: function(fromDt, db, userId) {
         // weekend
-        var day = fromDt.day();
-        var hour = fromDt.hour();
+        const day = fromDt.day();
+        const hour = fromDt.hour();
         if (day === 6 || (day === 0 && hour < 12) || (day === 5 && hour >= 15)) {
             return new Promise(function(resolve) {
                 resolve(["It's the weekend. Go play."]);
             });
         }
-        var toDt = moment(fromDt).add(1, 'days');
-        var promises = [
-            cal.loadEvents(fromDt, toDt),
-            db.get(userId)
+        const toDt = moment(fromDt).add(1, 'days');
+        const promises = [
+            cal.loadEventsFromFile(fromDt, toDt),
+            db.get(userId),
         ];
-        var dayName = getDayName(fromDt);
-        return Promise.all(promises).then(function(results) {
-            var events = results[0];
-            var user = results[1];
-            var grades = user && user.grades ? user.grades : [];
+        const dayName = getDayName(fromDt);
+
+        return Promise.all(promises).then((results) => {
+            const events = results[0];
+            const user = results[1];
+            const grades = user && user.grades ? user.grades : [];
+
             return toSpeech(dayName, events, grades);
         });
-    }
+    },
 };
