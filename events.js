@@ -117,7 +117,7 @@ module.exports = {
     },
 
     // returns a promise that resolves to an array of lines to say
-    forDay(fromDt, db, userId) {
+    forDay(fromDt) {
         // weekend
         const day = fromDt.day();
         const hour = fromDt.hour();
@@ -127,18 +127,8 @@ module.exports = {
             });
         }
         const toDt = moment(fromDt).add(1, 'days');
-        const promises = [
-            cal.loadEventsFromFile(fromDt, toDt),
-            db.get(userId),
-        ];
         const dayName = getDayName(fromDt);
 
-        return Promise.all(promises).then((results) => {
-            const events = results[0];
-            const user = results[1];
-            const grades = user && user.grades ? user.grades : [];
-
-            return toSpeech(dayName, events, grades);
-        });
+        return cal.loadEventsFromFile(fromDt, toDt).then(events => toSpeech(dayName, events));
     },
 };
