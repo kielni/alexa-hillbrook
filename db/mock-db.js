@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const data = require('./mock-data.json');
 
 function getGrades(userId) {

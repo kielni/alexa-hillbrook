@@ -1,7 +1,7 @@
 const ical = require('ical');
 const moment = require('moment-timezone');
 const AWS = require('aws-sdk');
-const rp = require('request-promise');
+const rp = require('request-promise-native');
 
 const s3 = new AWS.S3();
 const url = 'https://hillbrook.myschoolapp.com/podium/feed/iCal.aspx?z=Q%2bQ8E04WgcQ8e6RMGhn4rQtO5TFEtZOKzIzn5AmAbleTcLKlyoBEqvSxZKvMOSOxQ8UL%2fDAVwPLT5fs8sm3xqA%3d%3d';

@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const moment = require('moment-timezone');
 const cal = require('./calendar');
 const days = require('./days.json');
