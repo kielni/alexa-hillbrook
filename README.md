@@ -22,7 +22,7 @@ _"Alexa, what's happening Friday with Hillbrook bear"_
 ![architecture](https://github.com/kielni/alexa-hillbrook/blob/master/images/alexa-calendar.png "architecture diagram")
 
 
-Built with [alexa-app](https://github.com/matt-kruse/alexa-app) and Alexa command-line [(alcl)](https://github.com/kielni/alcl).  Uses [ical](https://www.npmjs.com/package/ical) for parsing Hillbrook's public calendar and [moment](http://momentjs.com/docs/) for date magic.  Hosted on [AWS Lambda](https://aws.amazon.com/lambda/), with user data in [Firebase](https://firebase.google.com/). 
+Built with [alexa-app](https://github.com/matt-kruse/alexa-app) and Alexa command-line [(alcl)](https://github.com/kielni/alcl).  Uses [ical](https://www.npmjs.com/package/ical) for parsing Hillbrook's public calendar and [moment](http://momentjs.com/docs/) for date magic.  Hosted on [AWS Lambda](https://aws.amazon.com/lambda/).
 
 ### local
 

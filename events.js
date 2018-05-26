@@ -1,6 +1,5 @@
 const moment = require('moment-timezone');
 const cal = require('./calendar');
-const days = require('./days.json');
 const speech = require('./speech.json');
 
 function getDayName(dt) {
@@ -32,8 +31,8 @@ function toSpeech(dayName, events) {
     const now = moment.tz(moment(), 'America/Los_Angeles');
     const dayExp = new RegExp(/([A-F]) Day/);
     const noSchool = new RegExp(/no school/i);
-    const hbDay = null;
-    let say = [];
+    let hbDay = null;
+    const say = [];
 
     events.forEach((ev) => {
         const start = ev.start;
@@ -46,7 +45,7 @@ function toSpeech(dayName, events) {
         }
 
         if (dayMatch) {
-            const hbDay = dayMatch[1];
+            hbDay = dayMatch[1];
             const idx = Math.floor(Math.random() * speech.dayWords[hbDay].length);
             // Today/Tomorrow/Monday is X day.
             say.push(`${dayName} is <say-as interpret-as="characters">${hbDay}</say-as>
@@ -101,7 +100,7 @@ module.exports = {
         const hour = fromDt.hour();
         if (day === 6 || (day === 0 && hour < 12) || (day === 5 && hour >= 15)) {
             return new Promise(function(resolve) {
-                resolve(["It's the weekend. Go play."]);
+                resolve(["It's the weekend. <break strength=\"medium\" /> Go play."]);
             });
         }
         const toDt = moment(fromDt).add(1, 'days');
