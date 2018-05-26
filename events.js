@@ -15,7 +15,7 @@ function getDayName(dt) {
     return dt.format('dddd');
 }
 
-function toSpeech(dayName, events, grades) {
+function toSpeech(dayName, events) {
     /*
     { start: { Fri, 13 May 2016 07:00:00 GMT tz: undefined },
       end: { Sat, 14 May 2016 07:00:00 GMT tz: undefined },
@@ -24,7 +24,7 @@ function toSpeech(dayName, events, grades) {
       end: { Fri, 13 May 2016 21:30:00 GMT tz: 'America/Los_Angeles' },
       summary: 'All School Walkathon' }
     */
-    console.log(`toSpeech: loaded ${events.length} events grades=${grades}`);
+    console.log(`toSpeech: loaded ${events.length} events`);
     if (!events || !events.length) {
         return(['Nothing going on.']);
     }
@@ -72,29 +72,7 @@ function toSpeech(dayName, events, grades) {
         }
     });
 
-    if (!grades) {
-        grades = [];
-    }
     console.log(`hbDay=${hbDay} hour=${now.hour()} dayName=${dayName}`);
-    // reminders only same-day morning
-    if (hbDay && now.hour() < 8 && dayName === 'today') {
-        let i = 0;
-
-        grades.forEach((grade) => {
-            if (!days[grade] || !days[grade][hbDay]) {
-                return;
-            }
-            if (i === 0 && grades.length > 1) {
-                say.push(`${speech.ers[grade]}, ${days[grade][hbDay][0]}`);
-                if (days[grade][hbDay].length > 1) {
-                    say = say.concat(days[grade][hbDay].slice(1));
-                }
-            } else {
-                say = say.concat(days[grade][hbDay]);
-            }
-            i += 1;
-        });
-    }
 
     return say.map(line => line[0].toUpperCase() + line.slice(1));
 }
