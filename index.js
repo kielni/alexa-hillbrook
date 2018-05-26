@@ -19,17 +19,14 @@ function sendResponse(dt, lines, response) {
     card.text = show.join('\n');
     response.card(card);
     response.say(say.join(' '));
-    response.send();
+
+    return response.send();
 }
 
 app.launch(function(request, response) {
     const dt = events.getDate(null);
 
-    events.forDay(dt).then((say) => {
-        sendResponse(dt, say, response);
-    });
-
-    return false;
+    return events.forDay(dt).then(say => sendResponse(dt, say, response));
 });
 
 app.intent(
@@ -46,21 +43,13 @@ app.intent(
         ],
     },
 
-    function(request, response) {
+    (request, response) => {
         console.log(`intent.forDay: when=${request.slot('WHEN')}`);
         const when = moment.tz(request.slot('WHEN'), 'America/Los_Angeles').startOf('day');
 
-        events.forDay(when).then((say) => {
-            sendResponse(when, say, response);
-        });
-
-        return false;
+        return events.forDay(when).then(say => sendResponse(when, say, response));
     }
 );
-
-app.sessionEnded(function(request/* , response */) {
-    console.log(`session ended for ${request.userId}`);
-});
 
 if (process.argv.length > 2) {
     const arg = process.argv[2];
