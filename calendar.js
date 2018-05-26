@@ -114,7 +114,7 @@ module.exports = {
                     if (dt && !dt.tz) {
                         dt.tz = 'America/Los_Angeles';
                         dt = moment(dt);
-                        dt.add('hour', times[dtKey]);
+                        dt.add(times[dtKey], 'hour');
                     }
                     data[key][dtKey] = moment(dt);
                 });
