@@ -1,6 +1,6 @@
 {
   "session": {
-    "sessionId": "SessionId.12345678-aaaa-bbbb-cccc-123412341234",
+    "sessionId": "SessionId.22345678-aaaa-bbbb-cccc-123412341234",
     "application": {
       "applicationId": "amzn1.echo-sdk-ams.app.12345678-aaaa-bbbb-cccc-123412341234"
     },
@@ -12,7 +12,7 @@
   "request": {
     "type": "LaunchRequest",
     "requestId": "EdwRequestId.12345678-aaaa-bbbb-cccc-123412341234",
-    "timestamp": "2016-05-13T12:00:00Z",
+    "timestamp": "2018-05-26T12:00:00Z",
     "locale": "en-US"
   },
   "version": "1.0"

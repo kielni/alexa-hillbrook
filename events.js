@@ -29,49 +29,36 @@ function toSpeech(dayName, events) {
     }
 
     const now = moment.tz(moment(), 'America/Los_Angeles');
-    const dayExp = new RegExp(/([A-F]) Day/);
     const noSchool = new RegExp(/no school/i);
-    let hbDay = null;
     const say = [];
 
     events.forEach((ev) => {
-        const start = ev.start;
-        const dayMatch = ev.summary.match(dayExp);
-
         if (ev.summary.match(noSchool)) {
-            say.push([`No school ${start.format('dddd')}.`]);
+            say.push([`No school ${ev.start.format('dddd')}.`]);
 
             return;
         }
 
-        if (dayMatch) {
-            hbDay = dayMatch[1];
-            const idx = Math.floor(Math.random() * speech.dayWords[hbDay].length);
-            // Today/Tomorrow/Monday is X day.
-            say.push(`${dayName} is <say-as interpret-as="characters">${hbDay}</say-as>
-                <break strength="medium" /> as in ${speech.dayWords[hbDay][idx]} day.`);
-        } else {
-            let verb = start.isAfter(now) ? 'is' : 'was';
-            // & is invalid ssml
-            ev.summary = ev.summary.replace(new RegExp('&', 'g'), 'and');
-            // don't say time for all-day events
-            if (ev.end.diff(start, 'day') === 1) {
-                // all day events start at midnight UTC (4/5pm PT previous day)
-                verb = 'is';
-                if (dayName === 'today' || dayName === 'tomorrow') {
-                    say.push(`${dayName} ${verb} ${ev.summary}`);
-                } else {
-                    say.push(`It's ${ev.summary}.`);
-                }
+        let verb = ev.start.isAfter(now) ? 'is' : 'was';
+        // & is invalid ssml
+        ev.summary = ev.summary.replace(new RegExp('&', 'g'), 'and');
+        // don't say time for all-day events
+        if (ev.end.diff(ev.start, 'day') === 1) {
+            // all day events start at midnight UTC (4/5pm PT previous day)
+            verb = 'is';
+            if (dayName === 'today' || dayName === 'tomorrow') {
+                say.push(`${dayName} ${verb} ${ev.summary}`);
             } else {
-                // 2pm or 2:30pm
-                const format = start.minute() === 0 ? 'hA' : 'h:mmA';
-                say.push(`${ev.summary} ${verb} at ${start.format(format)}.`);
+                say.push(`It's ${ev.summary}.`);
             }
+        } else {
+            // 2pm or 2:30pm
+            const format = ev.start.minute() === 0 ? 'hA' : 'h:mmA';
+            say.push(`${ev.summary} ${verb} at ${ev.start.format(format)}.`);
         }
     });
 
-    console.log(`hbDay=${hbDay} hour=${now.hour()} dayName=${dayName}`);
+    console.log(`hour=${now.hour()} dayName=${dayName}`);
 
     return say.map(line => line[0].toUpperCase() + line.slice(1));
 }
@@ -80,11 +67,11 @@ module.exports = {
     getDate(dt) {
         const isCurrent = dt === null;
         if (!dt) {
-            dt = moment.tz(moment(), 'America/Los_Angeles');
+            dt = moment().tz('America/Los_Angeles');
         }
         const hour = dt.hour();
         const fromDt = moment(dt);
-        console.log(`getDate: dt=${dt.toDate()} isCurrent=${isCurrent} hour=${hour}`);
+        console.log(`getDate: dt=${dt.format('YYYY-MM-DD HH:mm')} isCurrent=${isCurrent} hour=${hour}`);
         if (isCurrent && hour >= 15) {
             // after school today; get tomorrow
             fromDt.add(1, 'days').startOf('day');
@@ -103,7 +90,7 @@ module.exports = {
                 resolve(["It's the weekend. <break strength=\"medium\" /> Go play."]);
             });
         }
-        const toDt = moment(fromDt).add(1, 'days');
+        const toDt = moment(fromDt).endOf('day');
         const dayName = getDayName(fromDt);
 
         return cal.loadEventsFromFile(fromDt, toDt).then(events => toSpeech(dayName, events));

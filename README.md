@@ -4,15 +4,15 @@ Alexa tells you what's happening at school from the Hillbrook School calendar (i
 
 _"Alexa, launch Hillbrook bear"_
 
-    Today is B as in beetle day.
+    Today is Free Dress Day for all students
 
 _"Alexa, ask Hillbrook bear about tomorrow"_
 
-    Tomorrow is C as in chinchilla day. Art Show Opening is at 3:30PM.
+    Tomorrow Art Show Opening at 3:30PM.
 
 _"Alexa, what's happening Friday with Hillbrook bear"_
 
-    Friday is E as in earwig day.  It's free dress day.
+    Friday Green Participation Day.
 
 ![VUI diagram](https://github.com/kielni/alexa-hillbrook/blob/master/images/hillbrook_vui.png "VUI diagram")
 

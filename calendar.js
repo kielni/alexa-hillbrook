@@ -4,7 +4,8 @@ const AWS = require('aws-sdk');
 const rp = require('request-promise-native');
 
 const s3 = new AWS.S3();
-const url = 'https://hillbrook.myschoolapp.com/podium/feed/iCal.aspx?z=Q%2bQ8E04WgcQ8e6RMGhn4rQtO5TFEtZOKzIzn5AmAbleTcLKlyoBEqvSxZKvMOSOxQ8UL%2fDAVwPLT5fs8sm3xqA%3d%3d';
+const url = 'https://hillbrook.myschoolapp.com/podium/feed/iCal.aspx?z=0s%2feotx4yJDlRqdEhJ8zc%2baEu05q%2bFx029HqFcsGumPvnkQUamCwj2qiH4edRKSkQh7IMhAL%2fSxXjFPbmgj4oA%3d%3d';
+const DATE_FORMAT_STR = 'YYYY-MM-DD HH:mm';
 
 /*
 calendar feed returns a list of events:
@@ -39,15 +40,16 @@ function keepEvent(ev, fromDt, toDt) {
 
 module.exports = {
     cacheEvents() {
-        const now = moment();
+        const now = moment().tz('America/Los_Angeles');
 
         return this.loadEvents(now, moment().add(7, 'days')).then((ev) => {
             ev.forEach(function(e) {
+                console.log(`${e.summary}\t${e.start}\t${e.end}`);
                 if (e.start) {
-                    e.start = e.start.toISOString();
+                    e.start = e.start.format(DATE_FORMAT_STR);
                 }
                 if (e.end) {
-                    e.end = e.end.toISOString();
+                    e.end = e.end.format(DATE_FORMAT_STR);
                 }
             });
             console.log(`putting ${ev.length} events:\n`, JSON.stringify(ev));
@@ -64,40 +66,27 @@ module.exports = {
 
     loadEventsFromFile(fromDt, toDt) {
         const start = (new Date()).getTime();
-        console.log(`start load events from file for ${fromDt.toISOString()} to ${toDt.toISOString()} start=${start}`);
-        /*
-        return s3.getObject({
-            Bucket: BUCKET,
-            Key: FILENAME
-        }).promise().then(function(data) {
-        */
         const s3Url = `https://s3-us-west-1.amazonaws.com/${BUCKET}/${FILENAME}`;
+        const fromDtStr = fromDt.format(DATE_FORMAT_STR);
+        const toDtStr = toDt.format(DATE_FORMAT_STR);
 
-        return rp(s3Url).then(function(data) {
-            console.log('got file: ', ((new Date()).getTime() - start));
-            // var events = JSON.parse(data.Body).map(function(ev) {
-            const events = JSON.parse(data).map((ev) => {
-                ev.start = ev.start ? moment(ev.start) : null;
-                ev.end = ev.end ? moment(ev.end) : null;
+        console.log(`start load events from file for ${fromDtStr} to ${toDtStr} start=${start}`);
+
+        return rp(s3Url).then((data) => {
+            const events = JSON.parse(data).filter(ev => keepEvent(ev, fromDtStr, toDtStr));
+
+            return events.map((ev) => {
+                ev.start = moment(ev.start);
+                ev.end = moment(ev.end);
 
                 return ev;
             });
-            console.log('parsed file: ', ((new Date()).getTime() - start));
-            const keep = [];
-
-            events.forEach(function(ev) {
-                if (keepEvent(ev, fromDt, toDt)) {
-                    keep.push(ev);
-                }
-            });
-            console.log('filtered events: ', ((new Date()).getTime() - start));
-
-            return keep;
         });
     },
 
     loadEvents(fromDt, toDt) {
         console.log(`start load events for ${fromDt.toISOString()} to ${toDt.toISOString()}`);
+        console.log(url);
 
         return rp(url).then((response) => {
             if (!response) {
@@ -105,17 +94,16 @@ module.exports = {
             }
             const events = [];
             const data = ical.parseICS(response);
+
             Object.keys(data).forEach((key) => {
-                const times = { start: 8, end: -9 };
-                // letter days have tz: undefined; set to 8a-3p PT
-                // YYYY-MM-DDT07:00:00.000Z  - YYYY-MM-DD+1T07:00:00.000Z
-                Object.keys(times).forEach((dtKey) => {
-                    let dt = data[key][dtKey];
-                    if (dt && !dt.tz) {
-                        dt.tz = 'America/Los_Angeles';
-                        dt = moment(dt);
-                        dt.add(times[dtKey], 'hour');
+                // start: { 2019-08-26T10:00:00.000Z tz: 'America/Los_Angeles' },
+                // end: { 2019-08-26T11:00:00.000Z tz: 'America/Los_Angeles' },
+                ['start', 'end'].forEach((dtKey) => {
+                    const dt = data[key][dtKey];
+                    if (!dt) {
+                        return;
                     }
+                    // ignore timezone complexity; everything is in school-local time
                     data[key][dtKey] = moment(dt);
                 });
                 // console.log(data[key]);
