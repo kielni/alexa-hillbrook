@@ -1,6 +1,0 @@
-{
-    "FunctionName": "hillbrookcalendar",
-    "Runtime": "nodejs4.3",
-    "Handler": "index.lambda",
-    "MemorySize": 128
-}
