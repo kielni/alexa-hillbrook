@@ -4,15 +4,15 @@ Alexa tells you what's happening at school from the Hillbrook School calendar (i
 
 _"Alexa, launch Hillbrook bear"_
 
-    Today is Free Dress Day for all students
+    Today is Free Dress Day.
 
 _"Alexa, ask Hillbrook bear about tomorrow"_
 
-    Tomorrow Art Show Opening at 3:30PM.
+    Tomorrow is Art Show Opening at 3:30PM.
 
 _"Alexa, what's happening Friday with Hillbrook bear"_
 
-    Friday Green Participation Day.
+    Friday is Green Participation Day.
 
 ![VUI diagram](https://github.com/kielni/alexa-hillbrook/blob/master/images/hillbrook_vui.png "VUI diagram")
 
@@ -22,31 +22,81 @@ _"Alexa, what's happening Friday with Hillbrook bear"_
 ![architecture](https://github.com/kielni/alexa-hillbrook/blob/master/images/alexa-calendar.png "architecture diagram")
 
 
-Built with [alexa-app](https://github.com/matt-kruse/alexa-app) and Alexa command-line [(alcl)](https://github.com/kielni/alcl).  Uses [ical](https://www.npmjs.com/package/ical) for parsing Hillbrook's public calendar and [moment](http://momentjs.com/docs/) for date magic.  Hosted on [AWS Lambda](https://aws.amazon.com/lambda/).
+[lambda_function.py](hillbrook_calendar/lambda_function.py) defines two AWS Lambda functions:
 
-### local
+[cache_handler](hillbrook_calendar/lambda_function.py#L59) loads the ics-formatted calendar, parses it, and uploads events for the next 7 days to a JSON file on S3
 
-`index.js` exports an `alexa-app`:
+[skill_handler](hillbrook_calendar/lambda_function.py#L55) defines the Alexa skill, with two intents. The `launch` intent gets events for today, or tomorrow if after 3pm. The `forDay` event gets events for a requested date (ie "for Wednesday").
 
-    var app = new alexa.app('hillbrook-calendar');
 
-run [alexa-app-server](https://www.npmjs.com/package/alexa-app-server)
+## local testing
 
-go to http://localhost:8080/alexa/hillbrook-calendar to send requests
+Install requirements:
 
-### AWS
+    pip install -r requirements.txt
+    pip install -r dev-requirements.txt
 
-The AWS Lambda function handler is set to `lambda.handler`.
+From [hillbook_calendar](hillbrook_calendar/test.py):
 
-`lambda.js` exports the lambda setup handler:
+Load events from calendar and write to S3:
 
-    exports.handler = app.lambda();
+    python test.py cache
 
-#### push to AWS
+Caching events requires permission to write to the [config.S3_BUCKET](S3 bucket) using boto3. To write the file locally instead of S3, add `-o filename`:
 
-    alcl push
+    python test.py cache -o cache.json
 
-#### test launch intent
+Get events for today or a specific date:
 
-    alcl test
+    python test.py events
+    python test.py events --date 2020-09-10
 
+## AWS testing
+
+Set an AWS profile that has `lambda:ExecuteFunction permission` permission.
+
+### event caching: `hillbrook-calendar-cache`
+
+Watch the logs:
+
+```
+awslogs get /aws/lambda/hillbrook-calendar-cache --watch
+```
+
+Run the `hillbrook-calendar-cache` Lambda function:
+
+```
+aws lambda invoke --function-name hillbrook-calendar-cache response.json
+```
+
+Get the `events.json` file it wrote to S3:
+
+```
+curl https://alexa-hillbrook.s3-us-west-1.amazonaws.com/events.json
+```
+
+### events: `hillbrookcalendar`
+
+Watch the logs:
+
+```
+awslogs get /aws/lambda/hillbrookcalendar --watch
+```
+
+Run the `hillbrookcalendar` Lambda function with the launch request:
+
+```
+aws lambda invoke --function-name hillbrookcalendar --payload fileb://test/launch.json response.json
+```
+
+Display the output:
+
+```
+echo "---"; cat response.json; echo; echo "---"
+```
+
+To request events for a specific day, set the date in [hillbrook_calendar/test/for_day.json](hillbrook_calendar/test/for_day.json):
+
+```
+aws lambda invoke --function-name hillbrookcalendar --payload fileb://test/for_day.json response.json
+```

@@ -1,5 +1,6 @@
-aws/lambda.zip
-node_modules/*
-db/firebase_config.json
+deploy.zip
+deploy
+.DS_Store
+*/__pycache__
 
 

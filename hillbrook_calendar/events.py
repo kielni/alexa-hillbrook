@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta
 import json
 import logging
 import logging.config
-from typing import List
+from typing import List, Dict
 
 from dateutil import parser as date_parser
 from dateutil import tz
@@ -23,13 +23,14 @@ Event = namedtuple("Event", ["start", "end", "summary"])
 
 def load_from_parsed(from_dt: datetime, to_dt: datetime) -> List[Event]:
     """Load events from S3 JSON and return list of events in date range."""
-    from_str = from_dt.strftime("%Y-%m-%d %H:%m")
-    to_str = to_dt.strftime("%Y-%m-%d %H:%m")
+    from_str = from_dt.strftime("%Y-%m-%d %H:%M")
+    to_str = to_dt.strftime("%Y-%m-%d %H:%M")
     log.info("start load events from file: %s to %s", from_str, to_str)
     data = requests.get(config.PARSED_URL).json()
     events: List[Event] = []
     for ev in data:
         if ev["start"] < from_str or ev["start"] > to_str:
+            log.info(f"skipping event {ev} from_str={from_str} to_str={to_str}")
             continue
         ev["start"] = date_parser.parse(ev["start"])
         ev["end"] = date_parser.parse(ev["end"])
@@ -69,11 +70,22 @@ def load_from_ical(from_dt: datetime, to_dt: datetime) -> List[Event]:
     return events
 
 
-def cache():
-    """Load events from ical, format as JSON, as save to S3.
+def upload_cached(json_events: List[Dict]):
+    """Upload events to S3."""
+    client = boto3.client("s3")
+    log.info(
+        client.put_object(
+            ACL="public-read",
+            Bucket=config.S3_BUCKET,
+            Key=config.PARSED_FILENAME,
+            Body=json.dumps(json_events),
+            ContentType="application/json",
+        )
+    )
 
-    The ical feed is big and slow. Saving the next week of events to a static file makes the
-    skill response time faster.
+
+def create_cached() -> List[Dict]:
+    """Load events for the next 7 daysfrom ical and return as a list.
     """
     events = load_from_ical(datetime.now(), datetime.now() + timedelta(days=7))
     log.info("loaded %s events", len(events))
@@ -89,16 +101,16 @@ def cache():
                 "summary": event.summary,
             }
         )
-    client = boto3.client("s3")
-    log.info(
-        client.put_object(
-            ACL="public-read",
-            Bucket=config.S3_BUCKET,
-            Key=config.PARSED_FILENAME,
-            Body=json.dumps(json_events),
-            ContentType="application/json",
-        )
-    )
+    return json_events
+
+
+def cache():
+    """Load events from ical and saved to S3.
+
+    The ical feed is big and slow. Saving the next week of events to a static file makes the
+    skill response time faster.
+    """
+    upload_cached(create_cached())
 
 
 def _pacific_now() -> datetime:
@@ -136,7 +148,7 @@ def to_speech(day_name: str, events: List[Event]) -> str:
             if day_name in ["today", "tomorrow"]:
                 say.append(f"{day_name} {verb} {summary}.")
             else:
-                say.append(f"It's ${summary}.")
+                say.append(f"It's {summary}.")
         else:
             # 2:30pm or 2pm
             dt_format = "%-I:%M %p" if event.start.minute else "%-I %p"
@@ -156,7 +168,7 @@ def get_date() -> datetime:
 def for_day(from_dt: datetime) -> str:
     """Get the event descriptions for a date."""
     # 6=Sunday, 5=Saturday, 4=Friday
-    log.info("events for %s %s", from_dt, from_dt.weekday())
+    log.info("events for %s weekday=%s", from_dt, from_dt.weekday())
     day = from_dt.weekday()
     if (
         day == 5
@@ -165,8 +177,14 @@ def for_day(from_dt: datetime) -> str:
     ):
         return 'It\'s the weekend. <break string="medium" /> Go play.'
     # get events through the end of today
-    to_dt = datetime(from_dt.year, from_dt.month, from_dt.day, 23, 59, 59)
-    return to_speech(day_name(from_dt), load_from_parsed(from_dt, to_dt))
+    to_dt = datetime(from_dt.year, from_dt.month, from_dt.day, 23, 59, 59) + timedelta(
+        seconds=1
+    )
+    events = load_from_parsed(from_dt, to_dt)
+    if not events:
+        return "Nothing on the calendar."
+    log.info("return events %s", events)
+    return to_speech(day_name(from_dt), events)
 
 
 if __name__ == "__main__":
