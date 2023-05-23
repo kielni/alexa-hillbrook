@@ -1,4 +1,4 @@
 ask-sdk==1.14.0
-requests==2.24.0
+requests==2.31.0
 python-dateutil==2.6.1
 icalendar==4.0.6
